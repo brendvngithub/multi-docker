@@ -1,0 +1,22 @@
+sudo: required
+service:
+  - docker
+
+before_install:
+  - docker build -t complex -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run complex npm test -- --coverage
+
+after_success:
+  - docker build -t brendvn/multi-client ./client
+  - docker build -t brendvn/multi-nginx ./nginx
+  - docker build -t brendvn/multi-server ./server
+  - docker build -t brendvn/multi-worker ./worker
+  # log into docker cli
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # push to docker
+  - docker push brendvn/multi-client
+  - docker push brendvn/multi-nginx
+  - docker push brendvn/multi-server
+  - docker push brendvn/multi-worker
